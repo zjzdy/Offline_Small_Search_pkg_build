@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>opkg_build</class>
+ <widget class="QWidget" name="opkg_build">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>638</width>
+    <height>578</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>离线小搜离线包打包器</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
+      <widget class="QScrollArea" name="scrollArea">
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>612</width>
+          <height>552</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="3" column="1">
+          <widget class="QTextBrowser" name="status_text"/>
+         </item>
+         <item row="0" column="1">
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>离线包发布者</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="code_name"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>模式</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>保存离线包的目录</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>待打包的目录</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="Input_line"/>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="Output_dir_button">
+             <property name="text">
+              <string>选择保存离线包的目录</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="Input_dir_button">
+             <property name="text">
+              <string>选择待打包的目录</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <layout class="QGridLayout" name="gridLayout_8">
+             <item row="0" column="0">
+              <widget class="QPushButton" name="about_button">
+               <property name="text">
+                <string>关于</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="Output_line"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>离线包名称</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QPushButton" name="Start_button">
+             <property name="text">
+              <string>开始打包</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QComboBox" name="type">
+             <item>
+              <property name="text">
+               <string>ST(试题)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>GSW(古诗文)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>DevDoc(开发文档,开发者文档)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>UserDoc(使用文档,用户文档)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>ZL(资料)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Other(其他)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Mod(功能模块)</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>离线包标识码</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="name"/>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>离线包主页</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLineEdit" name="publisher"/>
+           </item>
+           <item row="6" column="1">
+            <widget class="QLineEdit" name="welcome"/>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
