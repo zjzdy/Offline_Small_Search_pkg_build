@@ -81,8 +81,7 @@ void opkg_build::on_Start_button_clicked()
     }
     if (ui->welcome->text().isEmpty()|ui->welcome->text().isNull())
     {
-        ui->status_text->append(tr("请输入 离线包主页."));
-        return;
+        ui->welcome->setText("");
     }
     if (ui->publisher->text().isEmpty()|ui->publisher->text().isNull())
     {
@@ -91,6 +90,7 @@ void opkg_build::on_Start_button_clicked()
     }
     Q_EMIT make_start(QString(ui->Input_line->text().remove(QRegExp("[/\\\\]$"))+"/"),QString(ui->Output_line->text().remove(QRegExp("[/\\\\]$"))+"/"+ui->code_name->text()),ui->type->currentText().remove(QRegExp("\\(.*\\)")),ui->publisher->text(),ui->name->text(),ui->welcome->text());
     disable_ui();
+
 }
 
 void opkg_build::on_input_statu(QString msg)
@@ -110,6 +110,14 @@ void opkg_build::on_done()
     ui->welcome->setReadOnly(false);
     ui->Input_line->setReadOnly(false);
     ui->Output_line->setReadOnly(false);
+    if(ui->checkBox->isChecked())
+    {
+        QFile home(ui->Output_line->text().remove(QRegExp("[/\\\\]$"))+"/"+ui->code_name->text()+"/home");
+        home.open(QFile::WriteOnly);
+        QDataStream home_s(&home);
+        home_s << ui->welcome->text() << ui->checkBox_2->isChecked();
+        home.close();
+    }
 }
 
 void opkg_build::disable_ui()
@@ -124,4 +132,10 @@ void opkg_build::disable_ui()
     ui->welcome->setReadOnly(true);
     ui->Input_line->setReadOnly(true);
     ui->Output_line->setReadOnly(true);
+}
+
+void opkg_build::on_checkBox_clicked(bool checked)
+{
+    ui->checkBox_2->setEnabled(checked);
+    ui->welcome->setEnabled(checked);
 }

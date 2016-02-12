@@ -40,6 +40,8 @@ private Q_SLOTS:
 
     void on_Start_button_clicked();
 
+    void on_checkBox_clicked(bool checked);
+
 private:
     Ui::opkg_build *ui;
     build_thread build_thread_obj;

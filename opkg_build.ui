@@ -174,6 +174,23 @@
            <item row="6" column="1">
             <widget class="QLineEdit" name="welcome"/>
            </item>
+           <item row="5" column="2">
+            <widget class="QCheckBox" name="checkBox">
+             <property name="text">
+              <string>启用主页页面</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="2">
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="text">
+              <string>默认进入主页</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
         </layout>
