@@ -27,6 +27,8 @@ Q_SIGNALS:
     void make_start(QString input, QString output, QString mode, QString publisher, QString title, QString welcome);
 
 public Q_SLOTS:
+    void on_change_statu_word(QString msg);
+    void on_change_progress(int progress);
     void on_input_statu(QString msg);
     void on_done();
     void disable_ui();

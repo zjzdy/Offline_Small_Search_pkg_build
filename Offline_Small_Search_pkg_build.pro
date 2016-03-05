@@ -12,6 +12,7 @@ TARGET = Offline_Small_Search_pkg_build
 TEMPLATE = app
 
 CONFIG += no_keywords c++11
+QMAKE_CFLAGS += -std=gnu11
 
 SOURCES += main.cpp\
         opkg_build.cpp \
@@ -59,6 +60,10 @@ HEADERS  += opkg_build.h \
 
 FORMS    += opkg_build.ui
 
-DEPENDPATH += G:/build/i686/xapian-bin/include G:/build/i686/xapian-bin/include/xapian G:/build/i686/xapian-core-1.2.21/common G:/build/i686/zimlib-bin/include G:/build/i686/file-bin/include
-INCLUDEPATH += G:/build/i686/xapian-bin/include G:/build/i686/xapian-bin/include/xapian G:/build/i686/xapian-core-1.2.21/common G:/build/i686/zimlib-bin/include G:/build/i686/file-bin/include
-LIBS+=-LG:/msys32/usr/local/lib -LG:/msys32/mingw32/lib -LG:/build/i686/zimlib-bin/lib -LG:/build/i686/xapian-bin/lib -LG:/build/i686/file-bin/lib -lmagic -lxapian -lxapian.dll -lzim -llzma -lwinmm -lrpcrt4 -lz -lws2_32
+DEPENDPATH += N:/msys2/msys32/usr/local/include N:/msys2/msys32/mingw32/include
+INCLUDEPATH += N:/msys2/msys32/usr/local/include N:/msys2/msys32/mingw32/include
+LIBS+=-LN:/msys2/msys32/usr/local/lib -LN:/msys2/msys32/mingw32/lib -lxapian -lzim -llzma -lwinmm -lrpcrt4 -lz -lws2_32
+
+!win32 {
+    LIBS+=-lmagic -lgnurx
+}

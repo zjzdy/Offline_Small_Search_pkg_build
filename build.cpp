@@ -1,6 +1,8 @@
 #include "build.h"
 
+#ifndef __WIN32
 magic_t magic;
+#endif
 std::map<std::string, unsigned int> counters;
 std::map<std::string, std::string> fileMimeTypes;
 std::map<std::string, std::string> extMimeTypes;
@@ -16,9 +18,9 @@ std::string description = "";
 std::string welcome = "";
 std::string code_name;
 unsigned long long count_index = 0;
-//std::string favicon = "";
 Xapian::WritableDatabase db;
 Xapian::TermGenerator termgen;
+Xapian::Stem stem("en");
 class MetadataArticle : public Article {
   public:
   MetadataArticle(std::string &id) {
@@ -29,7 +31,7 @@ class MetadataArticle : public Article {
   }
 };
 
-#include <str.h>
+/*#include <str.h>
 static string format_doc_termlist(const Xapian::Document & doc)
 {
     string output;
@@ -60,7 +62,7 @@ static string format_doc_termlist(const Xapian::Document & doc)
     }
     return output;
 }
-
+*/
 /* Decompress an STL string using zlib and return the original data. */
 inline std::string inflateString(const std::string& str) {
   z_stream zs; // z_stream is zlib's control structure
@@ -114,19 +116,30 @@ inline bool seemsToBeHtml(const std::string &path) {
 }
 
 inline std::string getFileContent(const std::string &path) {
-  std::ifstream in(path.c_str(), ::std::ios::binary);
-  if (in) {
-    std::string contents;
-    in.seekg(0, std::ios::end);
-    contents.resize(in.tellg());
-    in.seekg(0, std::ios::beg);
-    in.read(&contents[0], contents.size());
-    in.close();
+  try
+  {
+      std::ifstream in(path.c_str(), ::std::ios::binary);
+      if (in) {
+        std::string contents;
+        in.seekg(0, std::ios::end);
+        contents.resize(in.tellg());
+        in.seekg(0, std::ios::beg);
+        in.read(&contents[0], contents.size());
+        in.close();
 
-    return(contents);
- }
-  std::cerr << "读取文件: 无法打开文件: " << path << std::endl;
-  throw(errno);
+        return(contents);
+     }
+      std::cerr << "读取文件: 无法打开文件: " << path << std::endl;
+      throw(errno);
+  }
+  catch(...)
+    {
+        QFile file(QString::fromLocal8Bit(QByteArray::fromStdString(path)));
+        file.open(QFile::ReadOnly);
+        QByteArray byte = file.readAll();
+        file.close();
+        return byte.toStdString();
+    }
 }
 
 inline bool fileExists(const std::string &path) {
@@ -395,7 +408,7 @@ static std::string getMimeTypeForFile(const std::string& filename) {
   if (fileMimeTypes.find(filename) != fileMimeTypes.end()) {
     return fileMimeTypes[filename];
   }
-
+#ifndef __WIN32
   /* Try to get the mimeType with libmagic */
   try {
     std::string path = directoryPath + "/" + filename;
@@ -409,6 +422,9 @@ static std::string getMimeTypeForFile(const std::string& filename) {
   } catch (...) {
     return "";
   }
+#else
+  return "";
+#endif
 }
 
 inline std::string removeLocalTag(const std::string &url) {
@@ -442,6 +458,8 @@ build::build(QObject *parent) : QObject(parent)
     putenv(const_cast<char*>("ZIM_LZMA_LEVEL=9e"));
     putenv(const_cast<char*>("XAPIAN_CJK_NGRAM=1"));
 #endif
+	termgen.set_flags(Xapian::TermGenerator::FLAG_CJK_NGRAM);
+    termgen.set_stemmer(stem);
     /* Init file extensions hash */
     extMimeTypes["HTML"] = "text/html";
     extMimeTypes["html"] = "text/html";
@@ -495,8 +513,10 @@ build::build(QObject *parent) : QObject(parent)
     extMimeTypes["WOFF"] = "application/font-woff";
     extMimeTypes["vtt"] = "text/vtt";
     extMimeTypes["VTT"] = "text/vtt";
+#ifndef __WIN32
     magic = magic_open(MAGIC_MIME);
     magic_load(magic, NULL);
+#endif
 }
 
 
@@ -538,6 +558,8 @@ void build::on_build_start(QString input, QString output, QString mode, QString 
     name_stream << title;
     name_file.close();
     QObject::connect(articleS,SIGNAL(input_status(QString)),this,SIGNAL(input_status(QString)));
+    QObject::connect(articleS,SIGNAL(change_progress(int)),this,SIGNAL(change_progress(int)));
+    QObject::connect(articleS,SIGNAL(change_statu_word(QString)),this,SIGNAL(change_statu_word(QString)));
     QObject::connect(articleS,SIGNAL(done()),this,SIGNAL(done()));
 
     try
@@ -556,6 +578,7 @@ void build::on_build_start(QString input, QString output, QString mode, QString 
         db.commit();
         db.close();
         Q_EMIT input_status(tr("离线包打包成功."));
+        Q_EMIT change_statu_word(tr("离线包打包成功."));
 
     }
     catch (const std::exception& e)
@@ -563,6 +586,7 @@ void build::on_build_start(QString input, QString output, QString mode, QString 
         std::cerr << e.what() << std::endl;
         Q_EMIT input_status(QString(e.what()));
         Q_EMIT input_status(tr("离线包打包失败."));
+        Q_EMIT change_statu_word(tr("离线包打包失败.")+QString(e.what()));
     }
     Q_EMIT done();
     if (articleS != NULL)
@@ -587,6 +611,9 @@ ArticleSource::ArticleSource(QString input2, QString output2, QString mode)
     a = idir_str.size();
     current_dir = idir_str;
     count = 0;
+    data_count = 0;
+    get_data_stat = false;
+    get_next_stat = false;
     dir_iterator = new QDirIterator(input2,filters,QDir::Files|QDir::NoDotDot,QDirIterator::Subdirectories|QDirIterator::FollowSymlinks);
     directoryPath = input2.remove(QRegExp("[/\\\\]$")).toStdString();
 }
@@ -598,6 +625,11 @@ std::string ArticleSource::getMainPage()
 
 const zim::writer::Article* ArticleSource::getNextArticle()
 {
+    if(!get_next_stat)
+    {
+        get_next_stat = true;
+        Q_EMIT change_statu_word(tr("正在统计文件."));
+    }
     std::string path;
 
     if (article != NULL) {
@@ -624,7 +656,7 @@ const zim::writer::Article* ArticleSource::getNextArticle()
                   current_dir = filePath;
                   Q_EMIT input_status(tr("正在统计文件: 进入目录:")+current_dir);
               }
-              article = new Article(absolute_file_path.toStdString());
+              article = new Article(absolute_file_path.toLocal8Bit().toStdString());
               break;
               //Q_EMIT input_status(absolute_file_path);
           }
@@ -642,21 +674,40 @@ const zim::writer::Article* ArticleSource::getNextArticle()
       }
     }
     //Q_EMIT input_status("File: "+QString::fromStdString(article->getAid()));
-    ++count;
-    if(count%1000 == 1 && count > 1000)
+    if(article != NULL)
     {
-        Q_EMIT input_status(tr("已扫描:")+QString::number(count));
+        ++count;
+        if(count%1000 == 1 && count > 1000)
+        {
+            Q_EMIT input_status(tr("已统计:")+QString::number(count));
+        }
+    }
+    else
+    {
+        Q_EMIT input_status(tr("统计完成,共:")+QString::number(count)+tr("个文件"));
+        Q_EMIT change_statu_word(tr("正在处理文件列表."));
     }
     return article;
 }
 
 zim::Blob ArticleSource::getData(const std::string& aid)
 {
-    QString aid_url = input + QString::fromStdString(directoryPath + "/" + aid);
+    QString aid_url = input + QString::fromLocal8Bit(QByteArray::fromStdString(directoryPath + "/" + aid));
 
     if (data != NULL) {
       delete(data);
       data = NULL;
+    }
+    if(!get_data_stat)
+    {
+        get_data_stat = true;
+        Q_EMIT change_statu_word(tr("正在读取并索引文件 "));
+    }
+    ++data_count;
+    if(progress != data_count*100/count)
+    {
+        progress = data_count*100/count;
+        Q_EMIT change_progress(progress);
     }
     //qDebug()<<aid_url;
     string b;
@@ -734,13 +785,12 @@ zim::Blob ArticleSource::getData(const std::string& aid)
               std::map<std::string, bool> links;
               getLinks(root, links);
               std::map<std::string, bool>::iterator it;
-              std::string aidDirectory = removeLastPathElement(aid, false, false);
 
               /* If a link appearch to be duplicated in the HTML, it will
              occurs only one time in the links variable */
               for(it = links.begin(); it != links.end(); it++) {
-            if (!it->first.empty() && it->first[0] != '#') {
-              replaceStringInPlace(html, "\"" + it->first + "\"", "\"" + computeNewUrl(aid, it->first) + "\"");
+            if (it->first[0] == '/') {
+              replaceStringInPlace(html, "\"" + it->first + "\"", "\"/A" + it->first + "\"");
             }
               }
               gumbo_destroy_output(&kGumboDefaultOptions, output);
@@ -784,7 +834,7 @@ zim::Blob ArticleSource::getData(const std::string& aid)
                   mimeType == "application/vnd.ms-fontobject") {
 
                 try {
-                  std::string fontContent = getFileContent(directoryPath + "/" + computeAbsolutePath(aid, path));
+                  std::string fontContent = getFileContent(aid_url.remove(QRegExp("[^/\\\\]*$")).toLocal8Bit().toStdString() + path);
                   replaceStringInPlaceOnce(css,
                                startDelimiter + url + endDelimiter,
                                startDelimiter + "data:" + mimeType + ";base64," +
@@ -818,6 +868,12 @@ zim::Blob ArticleSource::getData(const std::string& aid)
             str1 = b;
             memcpy(data, str1.c_str(), dataSize);
         }
+    }
+    if(data_count == count)
+    {
+        progress = 100;
+        Q_EMIT change_progress(progress);
+        Q_EMIT change_statu_word(tr("正在写入文件."));
     }
     return zim::Blob(data, dataSize);
 }

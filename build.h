@@ -71,6 +71,8 @@ public:
     std::string data;
 Q_SIGNALS:
     void done();
+    void change_progress(int progress);
+    void change_statu_word(QString msg);
     void input_status(QString msg);
 };
 
@@ -101,8 +103,14 @@ public:
     Article *article;
     std::string str1;
     unsigned long long int count;
+    unsigned long long int data_count;
+    int progress;
+    bool get_data_stat;
+    bool get_next_stat;
 Q_SIGNALS:
     void done();
+    void change_progress(int progress);
+    void change_statu_word(QString msg);
     void input_status(QString msg);
 };
 
@@ -114,6 +122,8 @@ public:
 
 Q_SIGNALS:
     void done();
+    void change_progress(int progress);
+    void change_statu_word(QString msg);
     void input_status(QString msg);
 
 public Q_SLOTS:

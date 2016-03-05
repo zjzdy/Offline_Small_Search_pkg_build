@@ -6,7 +6,10 @@ opkg_build::opkg_build(QWidget *parent) :
     ui(new Ui::opkg_build)
 {
     ui->setupUi(this);
+    ui->progressBar->hide();
     QObject::connect(&build_thread_obj,SIGNAL(input_status(QString)),this,SLOT(on_input_statu(QString)));
+    QObject::connect(&build_thread_obj,SIGNAL(change_statu_word(QString)),this,SLOT(on_change_statu_word(QString)));
+    QObject::connect(&build_thread_obj,SIGNAL(change_progress(int)),this,SLOT(on_change_progress(int)));
     QObject::connect(&build_thread_obj,SIGNAL(done()),this,SLOT(on_done()));
     QObject::connect(this,SIGNAL(make_start(QString,QString,QString,QString,QString,QString)),&build_thread_obj,SIGNAL(build_start(QString,QString,QString,QString,QString,QString)));
     build_thread_obj.start();
@@ -85,9 +88,9 @@ void opkg_build::on_Start_button_clicked()
     }
     if (ui->publisher->text().isEmpty()|ui->publisher->text().isNull())
     {
-        ui->status_text->append(tr("请输入 离线包发布者."));
-        return;
+        ui->publisher->setText("");
     }
+    ui->progressBar->setValue(0);
     Q_EMIT make_start(QString(ui->Input_line->text().remove(QRegExp("[/\\\\]$"))+"/"),QString(ui->Output_line->text().remove(QRegExp("[/\\\\]$"))+"/"+ui->code_name->text()),ui->type->currentText().remove(QRegExp("\\(.*\\)")),ui->publisher->text(),ui->name->text(),ui->welcome->text());
     disable_ui();
 
@@ -96,6 +99,18 @@ void opkg_build::on_Start_button_clicked()
 void opkg_build::on_input_statu(QString msg)
 {
     ui->status_text->append(msg);
+}
+
+void opkg_build::on_change_statu_word(QString msg)
+{
+    ui->label_4->setText(msg);
+    if(msg == tr("正在读取并索引文件 ")) ui->progressBar->show();
+    else ui->progressBar->hide();
+}
+
+void opkg_build::on_change_progress(int progress)
+{
+    ui->progressBar->setValue(progress);
 }
 
 void opkg_build::on_done()
