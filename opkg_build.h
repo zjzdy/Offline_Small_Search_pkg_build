@@ -44,6 +44,8 @@ private Q_SLOTS:
 
     void on_checkBox_clicked(bool checked);
 
+    void on_read_from_zeal_clicked();
+
 private:
     Ui::opkg_build *ui;
     build_thread build_thread_obj;

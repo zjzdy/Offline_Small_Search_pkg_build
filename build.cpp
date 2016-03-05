@@ -758,7 +758,7 @@ zim::Blob ArticleSource::getData(const std::string& aid)
         }
         else
         {
-            Q_EMIT input_status(tr("读取文件: 无法打开文件:")+aid_url);
+            Q_EMIT input_status(tr("\n\n\n!!!读取文件: 无法打开文件:")+aid_url+"\n\n\n");
             s = NULL;
             dataSize = 0;
         }

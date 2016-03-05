@@ -23,8 +23,8 @@ opkg_build::~opkg_build()
 
 void opkg_build::on_Input_dir_button_clicked()
 {
-    QString a = QFileDialog::getExistingDirectory(this,tr("选择待打包的目录"),".");
-    if(!(a.isEmpty()|a.isNull()))
+    QString a = QFileDialog::getExistingDirectory(this,tr("选择待打包的目录"));
+    if(!(a.isEmpty()||a.isNull()))
     {
     ui->Input_line->setText(a);
     }
@@ -32,8 +32,8 @@ void opkg_build::on_Input_dir_button_clicked()
 
 void opkg_build::on_Output_dir_button_clicked()
 {
-    QString a = QFileDialog::getExistingDirectory(this,tr("选择保存离线包的目录"),".");
-    if(!(a.isEmpty()|a.isNull()))
+    QString a = QFileDialog::getExistingDirectory(this,tr("选择保存离线包的目录"));
+    if(!(a.isEmpty()||a.isNull()))
     {
     ui->Output_line->setText(a);
     }
@@ -153,4 +153,141 @@ void opkg_build::on_checkBox_clicked(bool checked)
 {
     ui->checkBox_2->setEnabled(checked);
     ui->welcome->setEnabled(checked);
+}
+
+void opkg_build::on_read_from_zeal_clicked()
+{
+    QString a = QFileDialog::getOpenFileName(this,tr("选择待打包的目录"),QString(),"meta.json");
+    if(a.isEmpty()||a.isNull())
+    {
+        return;
+    }
+    QString f = a;
+    f = f.remove(QRegExp("[^/\\\\]*$"))+"Contents/Resources/Documents";
+    ui->Input_line->setText(f);
+    QFile b(a);
+    b.open(QFile::ReadOnly);
+    QString c(b.readAll());
+    QRegExp d("indexFilePath\": \"([^\"]*)\"");
+    if(d.indexIn(c) != -1)
+        ui->welcome->setText(d.cap(1));
+    else
+    {
+        QFile e(f+"/../../Info.plist");
+        if(e.open(QFile::ReadOnly))
+        {
+            QString g(e.readAll());
+            QRegExp h("dashIndexFilePath<[^<]*<string>([^<]*)");
+            if(h.indexIn(g) != -1)
+                ui->welcome->setText(h.cap(1));
+            else
+            {
+                QFile e(f+"/index.html");
+                if(e.open(QFile::ReadOnly))
+                {
+                    QString g(e.readAll());
+                    QRegExp h("meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=([^\"]*)\"");
+                    if(h.indexIn(g) != -1)
+                        ui->welcome->setText(h.cap(1));
+                    else ui->welcome->setText("index.html");
+                }
+                else
+                {
+                    QFile e(f+"/html/index.html");
+                    if(e.open(QFile::ReadOnly))
+                    {
+                        QString g(e.readAll());
+                        QRegExp h("meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=([^\"]*)\"");
+                        if(h.indexIn(g) != -1)
+                            ui->welcome->setText(h.cap(1));
+                        else ui->welcome->setText("/html/index.html");
+                    }
+                    else
+                    {
+                        QFile e(f+"/doc/index.html");
+                        if(e.open(QFile::ReadOnly))
+                        {
+                            QString g(e.readAll());
+                            QRegExp h("meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=([^\"]*)\"");
+                            if(h.indexIn(g) != -1)
+                                ui->welcome->setText(h.cap(1));
+                            else ui->welcome->setText("/doc/index.html");
+                        }
+                        else
+                        {
+                            ui->welcome->setText("");
+                            ui->checkBox->setChecked(false);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            QFile e(f+"/index.html");
+            if(e.open(QFile::ReadOnly))
+            {
+                QString g(e.readAll());
+                QRegExp h("meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=([^\"]*)\"");
+                if(h.indexIn(g) != -1)
+                    ui->welcome->setText(h.cap(1));
+                else ui->welcome->setText("index.html");
+            }
+            else
+            {
+                QFile e(f+"/html/index.html");
+                if(e.open(QFile::ReadOnly))
+                {
+                    QString g(e.readAll());
+                    QRegExp h("meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=([^\"]*)\"");
+                    if(h.indexIn(g) != -1)
+                        ui->welcome->setText(h.cap(1));
+                    else ui->welcome->setText("/html/index.html");
+                }
+                else
+                {
+                    QFile e(f+"/doc/index.html");
+                    if(e.open(QFile::ReadOnly))
+                    {
+                        QString g(e.readAll());
+                        QRegExp h("meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=([^\"]*)\"");
+                        if(h.indexIn(g) != -1)
+                            ui->welcome->setText(h.cap(1));
+                        else ui->welcome->setText("/doc/index.html");
+                    }
+                    else
+                    {
+                        ui->welcome->setText("");
+                        ui->checkBox->setChecked(false);
+                    }
+                }
+            }
+        }
+    }
+    QString name,title,version,code_name,pkg_name;
+    d.setPattern("name\": \"([^\"]*)\"");
+    if(d.indexIn(c) != -1)
+        name = d.cap(1);
+    d.setPattern("title\": \"([^\"]*)\"");
+    if(d.indexIn(c) != -1)
+        title = d.cap(1);
+    code_name = "DevDoc_"+name+"_";
+    d.setPattern("version\": \"([^\"]*)\"");
+    if(d.indexIn(c) != -1)
+    {
+        version = d.cap(1);
+        if(title.right(1) == version.left(1))
+            title.remove(QRegExp("\\s*"+title.right(1)+"$"));
+        pkg_name = title+" "+version+" Document";
+        code_name = code_name+version+"_";
+    }
+    else pkg_name = title+" Document";
+    d.setPattern("revision\": \"([^\"]*)\"");
+    if(d.indexIn(c) != -1)
+        code_name = code_name+d.cap(1)+"_";
+    code_name = code_name+"0";
+    ui->name->setText(pkg_name);
+    ui->code_name->setText(code_name);
+    ui->type->setCurrentText(tr("DevDoc(开发文档,开发者文档)"));
+    ui->checkBox_2->setChecked(ui->checkBox->isChecked());
 }
