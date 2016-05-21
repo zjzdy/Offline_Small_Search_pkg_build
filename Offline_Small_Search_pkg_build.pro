@@ -56,13 +56,14 @@ HEADERS  += opkg_build.h \
     parse/namedentities.h \
     parse/strcasecmp.h \
     parse/stringutils.h \
-    parse/utf8convert.h
+    parse/utf8convert.h \
+    str.h
 
 FORMS    += opkg_build.ui
 
-DEPENDPATH += N:/msys2/msys32/usr/local/include N:/msys2/msys32/mingw32/include
-INCLUDEPATH += N:/msys2/msys32/usr/local/include N:/msys2/msys32/mingw32/include
-LIBS+=-LN:/msys2/msys32/usr/local/lib -LN:/msys2/msys32/mingw32/lib -lxapian -lzim -llzma -lwinmm -lrpcrt4 -lz -lws2_32
+DEPENDPATH += J:/msys2/msys32/usr/local/include J:/msys2/msys32/mingw32/include
+INCLUDEPATH += J:/msys2/msys32/usr/local/include J:/msys2/msys32/mingw32/include
+LIBS+=-LJ:/msys2/msys32/usr/local/lib -LJ:/msys2/msys32/mingw32/lib -lxapian -lzim -llzma -lwinmm -lrpcrt4 -lz -lws2_32
 
 !win32 {
     LIBS+=-lmagic -lgnurx

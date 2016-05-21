@@ -85,7 +85,7 @@ public:
     virtual const zim::writer::Article* getNextArticle();
     virtual zim::Blob getData(const std::string& aid);
     virtual std::string getMainPage();
-    void add_to_index(const std::string &text,const std::string &aid);
+    void add_to_index(const std::string &text,const std::string &title,const std::string &aid);
     MyHtmlParser htmlparse;
     QStringList filters;
     QDirIterator *dir_iterator;

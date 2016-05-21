@@ -20,7 +20,7 @@ std::string code_name;
 unsigned long long count_index = 0;
 Xapian::WritableDatabase db;
 Xapian::TermGenerator termgen;
-Xapian::Stem stem("en");
+Xapian::Stem enstem("en");
 class MetadataArticle : public Article {
   public:
   MetadataArticle(std::string &id) {
@@ -30,8 +30,8 @@ class MetadataArticle : public Article {
       url = id;
   }
 };
-
-/*#include <str.h>
+/*
+#include <str.h>
 static string format_doc_termlist(const Xapian::Document & doc)
 {
     string output;
@@ -459,7 +459,8 @@ build::build(QObject *parent) : QObject(parent)
     putenv(const_cast<char*>("XAPIAN_CJK_NGRAM=1"));
 #endif
 	termgen.set_flags(Xapian::TermGenerator::FLAG_CJK_NGRAM);
-    termgen.set_stemmer(stem);
+    //termgen.set_stemmer(stem);
+    termgen.set_stemming_strategy(Xapian::TermGenerator::STEM_NONE);
     /* Init file extensions hash */
     extMimeTypes["HTML"] = "text/html";
     extMimeTypes["html"] = "text/html";
@@ -776,7 +777,7 @@ zim::Blob ArticleSource::getData(const std::string& aid)
               std::string html = b;
               htmlparse.reset();
               htmlparse.parse_html(b,"utf-8",true);
-              add_to_index(htmlparse.dump,aid);
+              add_to_index(htmlparse.dump,htmlparse.title,aid);
 
               /* Rewrite links (src|href|...) attributes */
               GumboOutput* output = gumbo_parse(html.c_str());
@@ -863,7 +864,7 @@ zim::Blob ArticleSource::getData(const std::string& aid)
             }
         else {
             if (getMimeTypeForFile(aid).find("text/plain") == 0)
-                add_to_index(b,aid);
+                add_to_index(b,"",aid);
             data = new char[dataSize];
             str1 = b;
             memcpy(data, str1.c_str(), dataSize);
@@ -878,11 +879,23 @@ zim::Blob ArticleSource::getData(const std::string& aid)
     return zim::Blob(data, dataSize);
 }
 
-void ArticleSource::add_to_index(const std::string &text,const std::string &aid)
+void ArticleSource::add_to_index(const std::string &text, const string &title, const std::string &aid)
 {
+    //std::string Ctext = text+" "+enstem(text);
+    //std::string enT;
     Xapian::Document doc;
     termgen.set_document(doc);
-    termgen.index_text_without_positions(text,1,"C");
+    /*
+    QStringList entext_list = QString::fromStdString(text).remove(QRegExp("[^A-Za-z0-9 ,\\./;':\">?<，。？、；：]")).replace(QRegExp("[^A-Za-z0-9]+")," ").split(QRegExp("[^A-Za-z0-9]"));
+    for (int i = 0; i < entext_list.size(); ++i)
+    {
+        enT = entext_list.at(i).toStdString();
+        if(enT != enstem(enT))
+            Ctext += " "+enstem(enT);
+    }
+    */
+    std::string text2 = title+" "+title+" "+title+" "+title+" "+title+" "+title+" "+title+" "+text+" "+enstem(text);//title 7个加权
+    termgen.index_text_without_positions(text2,1);
     if(doc.termlist_count()!=0)
     {
         ++count_index;
@@ -891,7 +904,7 @@ void ArticleSource::add_to_index(const std::string &text,const std::string &aid)
         db.add_document(doc);
         if(count_index%1000 == 1 && count_index > 1000)
         {
-            //Q_EMIT input_status(tr("Xapian test:")+QString::fromStdString(format_doc_termlist(doc)+text));
+            //Q_EMIT input_status(tr("Xapian test:")+QString::fromStdString(format_doc_termlist(doc)));
             Q_EMIT input_status(tr("Xapian 已索引:")+QString::number(count_index));
             db.commit();
         }
